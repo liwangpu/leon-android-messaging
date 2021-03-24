@@ -253,9 +253,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let AppComponent = class AppComponent {
-    constructor(platform, userProfile, toastController) {
+    constructor(platform, userProfile, messagingSrv, toastController) {
         this.platform = platform;
         this.userProfile = userProfile;
+        this.messagingSrv = messagingSrv;
         this.toastController = toastController;
         this.subs = new subsink__WEBPACK_IMPORTED_MODULE_7__["SubSink"]();
     }
@@ -279,30 +280,29 @@ let AppComponent = class AppComponent {
                 tenantId: localStorage.getItem('tenantId'),
                 identityId: localStorage.getItem('identityId'),
                 employeeId: localStorage.getItem('employeeId'),
+                aliase: undefined,
             };
             if (typeof cordova === 'undefined') {
                 this.showMessage('当前应用不在手机端运行,前台服务将不会启动');
                 return;
             }
-            const configureMessaingPro = () => {
-                return new Promise((res, rej) => {
-                    cordova.plugins.Messaging.configure(JSON.stringify(config), () => {
-                        res(null);
-                    }, err => {
-                        rej(err);
-                    });
-                });
-            };
             const startupMessaingPro = () => {
                 return new Promise((res, rej) => {
-                    cordova.plugins.Messaging.startup("param", () => {
+                    cordova.plugins.Messaging.startup(JSON.stringify(config), () => {
                         res(null);
                     }, err => {
                         rej(err);
                     });
                 });
             };
-            configureMessaingPro().then(startupMessaingPro).then(() => this.showMessage(`服务启动成功`), err => this.showMessage(`服务启动失败:${err}`));
+            try {
+                config.aliase = yield this.messagingSrv.getAliase(config.employeeId).toPromise();
+                yield startupMessaingPro();
+                this.showMessage(`服务启动成功`);
+            }
+            catch (err) {
+                this.showMessage(`服务启动失败:${err}`);
+            }
         });
     }
     showMessage(msg) {
@@ -318,6 +318,7 @@ let AppComponent = class AppComponent {
 AppComponent.ctorParameters = () => [
     { type: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["Platform"] },
     { type: _services__WEBPACK_IMPORTED_MODULE_8__["UserProfileService"] },
+    { type: _services__WEBPACK_IMPORTED_MODULE_8__["MessagingService"] },
     { type: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["ToastController"] }
 ];
 AppComponent = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
@@ -393,6 +394,7 @@ AppModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
             _services__WEBPACK_IMPORTED_MODULE_8__["IdentityService"],
             _services__WEBPACK_IMPORTED_MODULE_8__["UserProfileService"],
             _services__WEBPACK_IMPORTED_MODULE_8__["UserProfileProviderService"],
+            _services__WEBPACK_IMPORTED_MODULE_8__["MessagingService"],
             { provide: _tokens__WEBPACK_IMPORTED_MODULE_9__["API_GATEWAY"], useValue: _env_environment__WEBPACK_IMPORTED_MODULE_10__["environment"].apiServer },
             { provide: _angular_router__WEBPACK_IMPORTED_MODULE_3__["RouteReuseStrategy"], useClass: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["IonicRouteStrategy"] },
             { provide: _angular_common_http__WEBPACK_IMPORTED_MODULE_7__["HTTP_INTERCEPTORS"], useClass: _services__WEBPACK_IMPORTED_MODULE_8__["ErrorInterceptor"], multi: true },
@@ -469,6 +471,46 @@ IdentityService.ctorParameters = () => [
 IdentityService = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_angular_core__WEBPACK_IMPORTED_MODULE_2__["Injectable"])()
 ], IdentityService);
+
+
+
+/***/ }),
+
+/***/ "c7tv":
+/*!***********************************************!*\
+  !*** ./src/app/services/messaging.service.ts ***!
+  \***********************************************/
+/*! exports provided: MessagingService */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MessagingService", function() { return MessagingService; });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
+/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/common/http */ "tk/3");
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/core */ "fXoL");
+/* harmony import */ var _tokens__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../tokens */ "nDUn");
+
+
+
+
+let MessagingService = class MessagingService {
+    constructor(gateway, httpClient) {
+        this.gateway = gateway;
+        this.httpClient = httpClient;
+    }
+    getAliase(employeeId) {
+        let info = { type: 'user', info: employeeId };
+        return this.httpClient.get(`${this.gateway}/message/alias?bizObjId=${JSON.stringify(info)}`);
+    }
+};
+MessagingService.ctorParameters = () => [
+    { type: String, decorators: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_2__["Inject"], args: [_tokens__WEBPACK_IMPORTED_MODULE_3__["API_GATEWAY"],] }] },
+    { type: _angular_common_http__WEBPACK_IMPORTED_MODULE_1__["HttpClient"] }
+];
+MessagingService = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
+    Object(_angular_core__WEBPACK_IMPORTED_MODULE_2__["Injectable"])()
+], MessagingService);
 
 
 
@@ -733,7 +775,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************!*\
   !*** ./src/app/services/index.ts ***!
   \***********************************/
-/*! exports provided: IdentityService, AuthInterceptor, ErrorInterceptor, UserProfileService, UserProfileProviderService */
+/*! exports provided: IdentityService, AuthInterceptor, ErrorInterceptor, UserProfileService, MessagingService, UserProfileProviderService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -750,8 +792,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _user_profile_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user-profile.service */ "Q+Hy");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UserProfileService", function() { return _user_profile_service__WEBPACK_IMPORTED_MODULE_3__["UserProfileService"]; });
 
-/* harmony import */ var _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./user-profile-provider.service */ "AI8P");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UserProfileProviderService", function() { return _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_4__["UserProfileProviderService"]; });
+/* harmony import */ var _messaging_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./messaging.service */ "c7tv");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MessagingService", function() { return _messaging_service__WEBPACK_IMPORTED_MODULE_4__["MessagingService"]; });
+
+/* harmony import */ var _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./user-profile-provider.service */ "AI8P");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UserProfileProviderService", function() { return _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_5__["UserProfileProviderService"]; });
+
 
 
 
