@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.cxist.mirror.bean.Actions
-import com.cxist.mirror.message.ServiceState
+import com.cxist.mirror.bean.ServiceState
 import com.cxist.mirror.message.getServiceState
 import com.cxist.mirror.message.log
 import com.cxist.mirror.service.MirrorMESService

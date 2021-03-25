@@ -12,7 +12,10 @@ import com.cxist.mirror.MainActivity
 import com.cxist.mirror.R
 import com.cxist.mirror.bean.Actions
 import com.cxist.mirror.bean.MessageData
-import com.cxist.mirror.message.*
+import com.cxist.mirror.bean.ServiceState
+import com.cxist.mirror.message.SignalR
+import com.cxist.mirror.message.log
+import com.cxist.mirror.message.setServiceState
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
