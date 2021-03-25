@@ -1,4 +1,4 @@
-package com.cxist.mirror.message
+package com.cxist.mirror.service
 
 import android.app.*
 import android.content.Context
@@ -10,6 +10,9 @@ import android.os.PowerManager
 import android.os.SystemClock
 import com.cxist.mirror.MainActivity
 import com.cxist.mirror.R
+import com.cxist.mirror.bean.Actions
+import com.cxist.mirror.bean.MessageData
+import com.cxist.mirror.message.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -67,7 +70,7 @@ class MirrorMESService : Service() {
 
         log("Starting the foreground service task")
         isServiceStarted = true
-        setServiceState(this, ServiceState.STARTED)
+        setServiceState(ServiceState.STARTED)
 
         // 避免睡眠模式服务被杀死
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
@@ -79,7 +82,7 @@ class MirrorMESService : Service() {
             while (isServiceStarted) {
                 launch {
                     log("每30秒发一次消息保持活跃")
-                    SignalR.send("ping every 30s")
+                    SignalR.send("ping", "ping every 30s")
                 }
                 delay(30 * 1000)
             }
@@ -105,7 +108,7 @@ class MirrorMESService : Service() {
             log("Service stopped without being started: ${e.message}")
         }
         isServiceStarted = false
-        setServiceState(this, ServiceState.STOPPED)
+        setServiceState(ServiceState.STOPPED)
     }
 
     private fun createNotification(data: MessageData? = null): Notification {
@@ -136,8 +139,8 @@ class MirrorMESService : Service() {
         }
 
         return builder
-                .setContentTitle("Mirror MES")
-                .setContentText(data?.message)
+                .setContentTitle(data?.title)
+                .setContentText(data?.content)
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setTicker("Mirror MES")
