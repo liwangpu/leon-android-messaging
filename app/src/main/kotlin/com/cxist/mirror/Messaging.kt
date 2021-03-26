@@ -15,21 +15,27 @@ import org.apache.cordova.CordovaPlugin
  */
 class Messaging : CordovaPlugin() {
 
-    override fun execute(action: String, args: CordovaArgs, callbackContext: CallbackContext): Boolean {
+    override fun execute(
+        action: String,
+        args: CordovaArgs,
+        callbackContext: CallbackContext
+    ): Boolean {
         try {
             when (action) {
                 STARTUP -> {
-                    // token
-                    val tokenStr = args.optString(0)
-                    setTokenInfo(tokenStr)
-                    // 服务器地址
-                    val baseUrlArg = args.optString(1)
-                    if (baseUrlArg != NativeHttp.SERVICE_BASE_URL) {
-                        // 如果SignalR地址变更，需要将原服务停止后再设置新地址，然后启动服务
-                        NativeHttp.SERVICE_BASE_URL = baseUrlArg
-                        actionOnService(Actions.STOP)
-                    }
-                    actionOnService(Actions.START)
+                    // 所有配置项 json格式的字符串
+                    var config = args.optString(0);
+//                    // token
+//                    val tokenStr = args.optString(0)
+//                    setTokenInfo(tokenStr)
+//                    // 服务器地址
+//                    val baseUrlArg = args.optString(1)
+//                    if (baseUrlArg != NativeHttp.SERVICE_BASE_URL) {
+//                        // 如果SignalR地址变更，需要将原服务停止后再设置新地址，然后启动服务
+//                        NativeHttp.SERVICE_BASE_URL = baseUrlArg
+//                        actionOnService(Actions.STOP)
+//                    }
+//                    actionOnService(Actions.START)
                 }
                 SHUTDOWN -> {
                     setTokenInfo(infoStr = null)

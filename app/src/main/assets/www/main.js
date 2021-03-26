@@ -107,7 +107,7 @@ __webpack_require__.r(__webpack_exports__);
 // The list of file replacements can be found in `angular.json`.
 const environment = {
     production: false,
-    apiServer: 'https://d-xcloud-gateway.cxist.cn/web'
+    apiServer: 'http://cxvpn.cxist.com:22504'
 };
 /*
  * For easier debugging in development mode, you can import the following file
@@ -243,6 +243,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! rxjs/operators */ "kU1M");
 /* harmony import */ var subsink__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! subsink */ "33Jv");
 /* harmony import */ var _services__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./services */ "o0su");
+/* harmony import */ var _tokens__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./tokens */ "nDUn");
+
 
 
 
@@ -253,7 +255,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let AppComponent = class AppComponent {
-    constructor(platform, userProfile, messagingSrv, toastController) {
+    constructor(gateway, platform, userProfile, messagingSrv, toastController) {
+        this.gateway = gateway;
         this.platform = platform;
         this.userProfile = userProfile;
         this.messagingSrv = messagingSrv;
@@ -274,6 +277,7 @@ let AppComponent = class AppComponent {
     startupMessaging() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             let config = {
+                gateway: this.gateway,
                 token: localStorage.getItem('access_token'),
                 expiresIn: localStorage.getItem('expires_in'),
                 refreshToken: localStorage.getItem('refresh_token'),
@@ -316,6 +320,7 @@ let AppComponent = class AppComponent {
     }
 };
 AppComponent.ctorParameters = () => [
+    { type: String, decorators: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["Inject"], args: [_tokens__WEBPACK_IMPORTED_MODULE_9__["API_GATEWAY"],] }] },
     { type: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["Platform"] },
     { type: _services__WEBPACK_IMPORTED_MODULE_8__["UserProfileService"] },
     { type: _services__WEBPACK_IMPORTED_MODULE_8__["MessagingService"] },

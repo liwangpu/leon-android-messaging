@@ -147,12 +147,25 @@ let LoginComponent = class LoginComponent {
         });
     }
     ngOnInit() {
-        let { query } = Object(query_string__WEBPACK_IMPORTED_MODULE_8__["parseUrl"])(this.router.url);
-        this.returnUrl = query.return;
-        let lastLoginStr = localStorage.getItem('latest_login');
-        if (lastLoginStr) {
-            this.form.patchValue(JSON.parse(lastLoginStr));
-        }
+        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+            let { query } = Object(query_string__WEBPACK_IMPORTED_MODULE_8__["parseUrl"])(this.router.url);
+            this.returnUrl = query.return;
+            let lastLoginStr = localStorage.getItem('latest_login');
+            if (lastLoginStr) {
+                this.form.patchValue(JSON.parse(lastLoginStr));
+            }
+            if (typeof cordova === 'undefined') {
+                return;
+            }
+            cordova.plugins.Messaging.shutdown(null, () => {
+            }, (err) => Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+                const toast = yield this.toastController.create({
+                    message: `消息服务关闭出现异常:${err}`,
+                    duration: 2000
+                });
+                toast.present();
+            }));
+        });
     }
     login() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
