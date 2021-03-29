@@ -7,7 +7,7 @@ package com.cxist.mirror.bean
  */
 data class MessageData(
         val title: String = "Mirror MES",
-        val content: String,
+        val content: String?,
         val link: String? = null
 ) {
     companion object {

@@ -1,10 +1,7 @@
 package com.cxist.mirror
 
-import android.content.Intent
-import android.os.Build
 import com.cxist.mirror.bean.ActionStartupInfo
 import com.cxist.mirror.bean.Actions
-import com.cxist.mirror.bean.ServiceState
 import com.cxist.mirror.bean.TokenInfo
 import com.cxist.mirror.message.*
 import com.cxist.mirror.service.MirrorMESService
@@ -32,13 +29,13 @@ class Messaging : CordovaPlugin() {
                     if (info.baseUrl != NativeHttp.SERVICE_BASE_URL) {
                         // 如果SignalR地址变更，需要将原服务停止后再设置新地址，然后启动服务
                         NativeHttp.SERVICE_BASE_URL = info.baseUrl
-                        actionOnService(Actions.STOP)
+                        MirrorMESService.actionOnService(cordova.context, Actions.STOP)
                     }
-                    actionOnService(Actions.START)
+                    MirrorMESService.actionOnService(cordova.context, Actions.START)
                 }
                 SHUTDOWN -> {
                     setTokenInfo(infoStr = null)
-                    actionOnService(Actions.STOP)
+                    MirrorMESService.actionOnService(cordova.context, Actions.STOP)
                 }
                 SET_TOKEN -> {
                     val tokenStr = args.optString(0)
@@ -55,21 +52,6 @@ class Messaging : CordovaPlugin() {
         } catch (e: Exception) {
             callbackContext.error(e.message)
             return false
-        }
-    }
-
-    private fun actionOnService(action: Actions) {
-        if (getServiceState() == ServiceState.STOPPED && action == Actions.STOP) return
-
-        Intent(this.cordova.context, MirrorMESService::class.java).also {
-            it.action = action.name
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                log("Android O 以上需要用 startForegroundService 启动前台服务")
-                this.cordova.context.startForegroundService(it)
-                return
-            }
-            log("Android O 以下可以直接启动服务")
-            this.cordova.context.startService(it)
         }
     }
 

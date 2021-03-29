@@ -8,12 +8,14 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.SystemClock
+import androidx.core.app.NotificationCompat
 import com.cxist.mirror.MainActivity
 import com.cxist.mirror.R
 import com.cxist.mirror.bean.Actions
 import com.cxist.mirror.bean.MessageData
 import com.cxist.mirror.bean.ServiceState
 import com.cxist.mirror.message.SignalR
+import com.cxist.mirror.message.getServiceState
 import com.cxist.mirror.message.log
 import com.cxist.mirror.message.setServiceState
 
@@ -66,7 +68,11 @@ class MirrorMESService : Service() {
     }
 
     private fun startService() {
-        if (isServiceStarted) return
+        if (isServiceStarted) {
+            val notification = createNotification()
+            startForeground(1, notification)
+            return
+        }
 
         log("Starting the foreground service task")
         isServiceStarted = true
@@ -99,12 +105,13 @@ class MirrorMESService : Service() {
         setServiceState(ServiceState.STOPPED)
     }
 
-    private fun createNotification(data: MessageData? = null): Notification {
-        val notificationChannelId = "Mirror MES"
+    private fun createNotification(data: MessageData = MessageData(content = null)): Notification {
+        val notificationChannelId = if (data.content.isNullOrEmpty()) "Mirror MES Low" else "Mirror MES High"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(notificationChannelId, "Mirror MES", NotificationManager.IMPORTANCE_HIGH).let {
+            val importance = if (data.content.isNullOrEmpty()) NotificationManager.IMPORTANCE_LOW else NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(notificationChannelId, "Mirror MES", importance).let {
                 it.description = "Mirror MES"
                 it.enableLights(true)
                 it.lightColor = Color.GREEN
@@ -116,7 +123,7 @@ class MirrorMESService : Service() {
         }
 
         val pendingIntent: PendingIntent = Intent(this, MainActivity::class.java).let { notificationIntent ->
-            notificationIntent.putExtra(MessageData.LINK_KEY, data?.link)
+            notificationIntent.putExtra(MessageData.LINK_KEY, data.link)
             PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
@@ -127,16 +134,38 @@ class MirrorMESService : Service() {
         }
 
         return builder
-                .setContentTitle(data?.title)
-                .setContentText(data?.content)
+                .setContentTitle(data.title)
+                .setContentText(data.content)
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setTicker("Mirror MES")
                 .setPriority(Notification.PRIORITY_HIGH) // for under android 26 compatibility
+                .apply {
+                    if (data.content.isNullOrEmpty()) {
+                        setDefaults(NotificationCompat.FLAG_ONLY_ALERT_ONCE)
+                    }
+                }
                 .build()
     }
 
     override fun onBind(intent: Intent): IBinder? {
         return null
+    }
+
+    companion object {
+        @JvmStatic
+        fun actionOnService(context: Context, action: Actions) {
+            if (getServiceState() == ServiceState.STOPPED && action == Actions.STOP) return
+            Intent(context, MirrorMESService::class.java).also {
+                it.action = action.name
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    log("Android O 以上需要用 startForegroundService 启动前台服务")
+                    context.startForegroundService(it)
+                    return
+                }
+                log("Android O 以下可以直接启动服务")
+                context.startService(it)
+            }
+        }
     }
 }

@@ -19,15 +19,28 @@
 
 package com.cxist.mirror;
 
+import android.content.Intent;
 import android.os.Bundle;
-import org.apache.cordova.*;
 
-public class MainActivity extends CordovaActivity
-{
+import com.cxist.mirror.bean.Actions;
+import com.cxist.mirror.bean.MessageData;
+import com.cxist.mirror.message.UtilsKt;
+import com.cxist.mirror.service.MirrorMESService;
+
+import org.apache.cordova.CordovaActivity;
+
+public class MainActivity extends CordovaActivity {
+
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        clickNotification(intent);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        clickNotification(getIntent());
 
         // enable Cordova apps to be started in the background
         Bundle extras = getIntent().getExtras();
@@ -37,5 +50,22 @@ public class MainActivity extends CordovaActivity
 
         // Set by <content src="index.html" /> in config.xml
         loadUrl(launchUrl);
+    }
+
+    /**
+     * 点击通知
+     */
+    private void clickNotification(Intent intent) {
+        if (intent != null) {
+            if (intent.hasExtra(MessageData.LINK_KEY)) {
+                MirrorMESService.actionOnService(this, Actions.START);
+                String link = intent.getStringExtra(MessageData.LINK_KEY);
+                if (link != null) {
+                    UtilsKt.log("消息点击跳转链接 = " + link);
+                    // TODO 账号登录处理与跳转指定页面
+                }
+
+            }
+        }
     }
 }
