@@ -2,8 +2,10 @@ package com.cxist.mirror
 
 import android.content.Intent
 import android.os.Build
+import com.cxist.mirror.bean.ActionStartupInfo
 import com.cxist.mirror.bean.Actions
 import com.cxist.mirror.bean.ServiceState
+import com.cxist.mirror.bean.TokenInfo
 import com.cxist.mirror.message.*
 import com.cxist.mirror.service.MirrorMESService
 import org.apache.cordova.CallbackContext
@@ -15,27 +17,24 @@ import org.apache.cordova.CordovaPlugin
  */
 class Messaging : CordovaPlugin() {
 
-    override fun execute(
-        action: String,
-        args: CordovaArgs,
-        callbackContext: CallbackContext
-    ): Boolean {
+    override fun execute(action: String, args: CordovaArgs, callbackContext: CallbackContext): Boolean {
         try {
             when (action) {
                 STARTUP -> {
                     // 所有配置项 json格式的字符串
-                    var config = args.optString(0);
-//                    // token
-//                    val tokenStr = args.optString(0)
-//                    setTokenInfo(tokenStr)
-//                    // 服务器地址
-//                    val baseUrlArg = args.optString(1)
-//                    if (baseUrlArg != NativeHttp.SERVICE_BASE_URL) {
-//                        // 如果SignalR地址变更，需要将原服务停止后再设置新地址，然后启动服务
-//                        NativeHttp.SERVICE_BASE_URL = baseUrlArg
-//                        actionOnService(Actions.STOP)
-//                    }
-//                    actionOnService(Actions.START)
+                    val info = gson.fromJson(args.optString(0), ActionStartupInfo::class.java)
+                    log("info = $info")
+                    // token
+                    setTokenInfo(TokenInfo(info.token, info.refreshToken, info.expiresIn))
+                    // alias 别名
+                    setAlias(info.alias)
+                    // 服务器地址
+                    if (info.baseUrl != NativeHttp.SERVICE_BASE_URL) {
+                        // 如果SignalR地址变更，需要将原服务停止后再设置新地址，然后启动服务
+                        NativeHttp.SERVICE_BASE_URL = info.baseUrl
+                        actionOnService(Actions.STOP)
+                    }
+                    actionOnService(Actions.START)
                 }
                 SHUTDOWN -> {
                     setTokenInfo(infoStr = null)

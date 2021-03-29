@@ -45,3 +45,13 @@ fun getTokenInfo(): TokenInfo? {
         gson.fromJson(it, TokenInfo::class.java)
     }
 }
+
+private const val key_alias = "MIRROR_MES_ALIAS"
+
+fun setAlias(alias: String) {
+    mmkv?.encode(key_alias, alias)
+}
+
+fun getAlias(): String {
+    return mmkv?.decodeString(key_alias) ?: ""
+}

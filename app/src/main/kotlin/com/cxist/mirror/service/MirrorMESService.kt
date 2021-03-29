@@ -16,9 +16,6 @@ import com.cxist.mirror.bean.ServiceState
 import com.cxist.mirror.message.SignalR
 import com.cxist.mirror.message.log
 import com.cxist.mirror.message.setServiceState
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class MirrorMESService : Service() {
 
@@ -78,18 +75,6 @@ class MirrorMESService : Service() {
         // 避免睡眠模式服务被杀死
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
             newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MirrorMESService::lock").apply { acquire() }
-        }
-
-        // 协程，每30秒发一次消息保持活跃
-        GlobalScope.launch {
-            while (isServiceStarted) {
-                launch {
-                    log("每30秒发一次消息保持活跃")
-                    SignalR.send("ping", "ping every 30s")
-                }
-                delay(30 * 1000)
-            }
-            log("End of the loop for the service")
         }
 
         // 接收消息的监听
