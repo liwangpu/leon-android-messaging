@@ -58,13 +58,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UserProfileProviderService", function() { return UserProfileProviderService; });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
-/* harmony import */ var _user_profile_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./user-profile.service */ "Q+Hy");
+/* harmony import */ var _enums__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../enums */ "Edqf");
+/* harmony import */ var _message_opsat_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./message-opsat.service */ "qkpx");
+/* harmony import */ var _user_profile_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./user-profile.service */ "Q+Hy");
+
+
 
 
 
 let UserProfileProviderService = class UserProfileProviderService {
-    constructor(profileSrv) {
+    constructor(profileSrv, opsat) {
         this.profileSrv = profileSrv;
+        this.opsat = opsat;
     }
     getProfile() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
@@ -77,12 +82,14 @@ let UserProfileProviderService = class UserProfileProviderService {
             localStorage.setItem('employeeId', profile.employeeId);
             localStorage.setItem('identityId', profile.identityId);
             localStorage.setItem('tenantId', profile.tenantId);
+            this.opsat.publish(_enums__WEBPACK_IMPORTED_MODULE_2__["AppMessageTopicEnum"].profileReady);
             return profile;
         });
     }
 };
 UserProfileProviderService.ctorParameters = () => [
-    { type: _user_profile_service__WEBPACK_IMPORTED_MODULE_2__["UserProfileService"] }
+    { type: _user_profile_service__WEBPACK_IMPORTED_MODULE_4__["UserProfileService"] },
+    { type: _message_opsat_service__WEBPACK_IMPORTED_MODULE_3__["MessageOpsatService"] }
 ];
 UserProfileProviderService = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Injectable"])()
@@ -134,6 +141,42 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "fXoL");
 
 const API_GATEWAY = new _angular_core__WEBPACK_IMPORTED_MODULE_0__["InjectionToken"]('api gateway');
+
+
+/***/ }),
+
+/***/ "Edqf":
+/*!********************************!*\
+  !*** ./src/app/enums/index.ts ***!
+  \********************************/
+/*! exports provided: AppMessageTopicEnum */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _app_message_topic_enum__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./app-message-topic.enum */ "IAlE");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AppMessageTopicEnum", function() { return _app_message_topic_enum__WEBPACK_IMPORTED_MODULE_0__["AppMessageTopicEnum"]; });
+
+
+
+
+/***/ }),
+
+/***/ "IAlE":
+/*!*************************************************!*\
+  !*** ./src/app/enums/app-message-topic.enum.ts ***!
+  \*************************************************/
+/*! exports provided: AppMessageTopicEnum */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppMessageTopicEnum", function() { return AppMessageTopicEnum; });
+var AppMessageTopicEnum;
+(function (AppMessageTopicEnum) {
+    AppMessageTopicEnum["profileReady"] = "profileReady";
+    AppMessageTopicEnum["logout"] = "logout";
+})(AppMessageTopicEnum || (AppMessageTopicEnum = {}));
 
 
 /***/ }),
@@ -239,11 +282,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _app_component_scss__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./app.component.scss */ "ynWL");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _ionic_angular__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @ionic/angular */ "TEn/");
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! rxjs */ "qCKp");
-/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! rxjs/operators */ "kU1M");
-/* harmony import */ var subsink__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! subsink */ "33Jv");
+/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! rxjs/operators */ "kU1M");
+/* harmony import */ var subsink__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! subsink */ "33Jv");
+/* harmony import */ var _enums__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./enums */ "Edqf");
 /* harmony import */ var _services__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./services */ "o0su");
-/* harmony import */ var _tokens__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./tokens */ "nDUn");
+/* harmony import */ var _env_environment__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @env/environment */ "AytR");
 
 
 
@@ -255,29 +298,31 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let AppComponent = class AppComponent {
-    constructor(gateway, platform, userProfile, messagingSrv, toastController) {
-        this.gateway = gateway;
+    constructor(platform, messagingSrv, opsat, toastController) {
         this.platform = platform;
-        this.userProfile = userProfile;
         this.messagingSrv = messagingSrv;
+        this.opsat = opsat;
         this.toastController = toastController;
-        this.subs = new subsink__WEBPACK_IMPORTED_MODULE_7__["SubSink"]();
+        this.subs = new subsink__WEBPACK_IMPORTED_MODULE_6__["SubSink"]();
+        this.subs.sink = this.opsat.message$.pipe(Object(_services__WEBPACK_IMPORTED_MODULE_8__["topicFilter"])(_enums__WEBPACK_IMPORTED_MODULE_7__["AppMessageTopicEnum"].profileReady), Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_5__["delay"])(200)).subscribe(() => {
+            // let employeeId = localStorage.getItem('employeeId');
+            // console.log('employeeId:', employeeId);
+            this.startupMessaging();
+        });
+        this.subs.sink = this.opsat.message$.pipe(Object(_services__WEBPACK_IMPORTED_MODULE_8__["topicFilter"])(_enums__WEBPACK_IMPORTED_MODULE_7__["AppMessageTopicEnum"].logout)).subscribe(() => {
+            this.shutdownMessaging();
+        });
     }
     ngOnDestroy() {
         this.subs.unsubscribe();
     }
     ngOnInit() {
-        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            this.subs.sink = Object(rxjs__WEBPACK_IMPORTED_MODULE_5__["combineLatest"])([
-                this.userProfile.profile$.pipe(Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_6__["filter"])(p => p ? true : false)),
-                Object(rxjs__WEBPACK_IMPORTED_MODULE_5__["from"])(this.platform.ready())
-            ]).pipe(Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_6__["take"])(1)).subscribe(() => this.startupMessaging());
-        });
+        //
     }
     startupMessaging() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             let config = {
-                gateway: this.gateway,
+                gateway: _env_environment__WEBPACK_IMPORTED_MODULE_9__["environment"].apiServer,
                 token: localStorage.getItem('access_token'),
                 expiresIn: localStorage.getItem('expires_in'),
                 refreshToken: localStorage.getItem('refresh_token'),
@@ -301,29 +346,52 @@ let AppComponent = class AppComponent {
             };
             try {
                 config.aliase = yield this.messagingSrv.getAliase(config.employeeId).toPromise();
+                console.log('config:', config.aliase);
                 yield startupMessaingPro();
                 this.showMessage(`服务启动成功`);
             }
             catch (err) {
-                this.showMessage(`服务启动失败:${err}`);
+                this.showMessage(`服务启动失败:${err}`, 1000 * 60 * 2);
             }
         });
     }
-    showMessage(msg) {
+    shutdownMessaging() {
+        return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+            if (typeof cordova === 'undefined') {
+                return;
+            }
+            const shutdownMessaingPro = () => {
+                return new Promise((res, rej) => {
+                    cordova.plugins.Messaging.shutdown(null, () => {
+                        res(null);
+                    }, err => {
+                        rej(err);
+                    });
+                });
+            };
+            try {
+                yield shutdownMessaingPro();
+                this.showMessage(`服务停止成功`);
+            }
+            catch (err) {
+                this.showMessage(`服务停止失败:${err}`, 1000 * 60 * 2);
+            }
+        });
+    }
+    showMessage(msg, duration = 2000) {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             const toast = yield this.toastController.create({
                 message: msg,
-                duration: 2000
+                duration
             });
             toast.present();
         });
     }
 };
 AppComponent.ctorParameters = () => [
-    { type: String, decorators: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["Inject"], args: [_tokens__WEBPACK_IMPORTED_MODULE_9__["API_GATEWAY"],] }] },
     { type: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["Platform"] },
-    { type: _services__WEBPACK_IMPORTED_MODULE_8__["UserProfileService"] },
     { type: _services__WEBPACK_IMPORTED_MODULE_8__["MessagingService"] },
+    { type: _services__WEBPACK_IMPORTED_MODULE_8__["MessageOpsatService"] },
     { type: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["ToastController"] }
 ];
 AppComponent = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
@@ -400,6 +468,7 @@ AppModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
             _services__WEBPACK_IMPORTED_MODULE_8__["UserProfileService"],
             _services__WEBPACK_IMPORTED_MODULE_8__["UserProfileProviderService"],
             _services__WEBPACK_IMPORTED_MODULE_8__["MessagingService"],
+            _services__WEBPACK_IMPORTED_MODULE_8__["MessageOpsatService"],
             { provide: _tokens__WEBPACK_IMPORTED_MODULE_9__["API_GATEWAY"], useValue: _env_environment__WEBPACK_IMPORTED_MODULE_10__["environment"].apiServer },
             { provide: _angular_router__WEBPACK_IMPORTED_MODULE_3__["RouteReuseStrategy"], useClass: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["IonicRouteStrategy"] },
             { provide: _angular_common_http__WEBPACK_IMPORTED_MODULE_7__["HTTP_INTERCEPTORS"], useClass: _services__WEBPACK_IMPORTED_MODULE_8__["ErrorInterceptor"], multi: true },
@@ -507,6 +576,36 @@ let MessagingService = class MessagingService {
     getAliase(employeeId) {
         let info = { type: 'user', info: employeeId };
         return this.httpClient.get(`${this.gateway}/message/alias?bizObjId=${JSON.stringify(info)}`);
+    }
+    sendMessage(title, message, link) {
+        let info = { title, content: message, link };
+        let data = {
+            sender: {
+                type: "user",
+                info: "11111"
+            },
+            receiver: {
+                type: "user",
+                info: localStorage.getItem('employeeId')
+            },
+            message: {
+                type: "plain",
+                info: JSON.stringify(info)
+            },
+            options: {
+                notSaveInBox: false
+            }
+        };
+        let headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        headers.append('tenantId', localStorage.getItem('tenantId'));
+        // let options = new RequestOptions({ headers: headers });
+        return this.httpClient.post(`${this.gateway}/message/send`, data, {
+            headers: {
+                'Content-Type': 'application/json',
+                'tenantId': localStorage.getItem('tenantId')
+            }
+        });
     }
 };
 MessagingService.ctorParameters = () => [
@@ -780,7 +879,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************!*\
   !*** ./src/app/services/index.ts ***!
   \***********************************/
-/*! exports provided: IdentityService, AuthInterceptor, ErrorInterceptor, UserProfileService, MessagingService, UserProfileProviderService */
+/*! exports provided: IdentityService, AuthInterceptor, ErrorInterceptor, UserProfileService, MessagingService, topicFilter, topicFilters, topicExpressionFilter, dataMap, topicMap, MessageOpsatService, UserProfileProviderService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -800,8 +899,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _messaging_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./messaging.service */ "c7tv");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MessagingService", function() { return _messaging_service__WEBPACK_IMPORTED_MODULE_4__["MessagingService"]; });
 
-/* harmony import */ var _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./user-profile-provider.service */ "AI8P");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UserProfileProviderService", function() { return _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_5__["UserProfileProviderService"]; });
+/* harmony import */ var _message_opsat_service__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./message-opsat.service */ "qkpx");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "topicFilter", function() { return _message_opsat_service__WEBPACK_IMPORTED_MODULE_5__["topicFilter"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "topicFilters", function() { return _message_opsat_service__WEBPACK_IMPORTED_MODULE_5__["topicFilters"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "topicExpressionFilter", function() { return _message_opsat_service__WEBPACK_IMPORTED_MODULE_5__["topicExpressionFilter"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dataMap", function() { return _message_opsat_service__WEBPACK_IMPORTED_MODULE_5__["dataMap"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "topicMap", function() { return _message_opsat_service__WEBPACK_IMPORTED_MODULE_5__["topicMap"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MessageOpsatService", function() { return _message_opsat_service__WEBPACK_IMPORTED_MODULE_5__["MessageOpsatService"]; });
+
+/* harmony import */ var _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./user-profile-provider.service */ "AI8P");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UserProfileProviderService", function() { return _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_6__["UserProfileProviderService"]; });
+
 
 
 
@@ -854,6 +967,68 @@ ErrorInterceptor.ctorParameters = () => [
 ErrorInterceptor = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Injectable"])()
 ], ErrorInterceptor);
+
+
+
+/***/ }),
+
+/***/ "qkpx":
+/*!***************************************************!*\
+  !*** ./src/app/services/message-opsat.service.ts ***!
+  \***************************************************/
+/*! exports provided: topicFilter, topicFilters, topicExpressionFilter, dataMap, topicMap, MessageOpsatService */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "topicFilter", function() { return topicFilter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "topicFilters", function() { return topicFilters; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "topicExpressionFilter", function() { return topicExpressionFilter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "dataMap", function() { return dataMap; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "topicMap", function() { return topicMap; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MessageOpsatService", function() { return MessageOpsatService; });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! rxjs */ "qCKp");
+/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rxjs/operators */ "kU1M");
+
+
+
+
+// @dynamic
+function topicFilter(topic) {
+    return Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_3__["filter"])((x) => x.topic === topic);
+}
+// @dynamic
+function topicFilters(...topics) {
+    return Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_3__["filter"])((x) => topics.indexOf(x.topic) > -1);
+}
+// @dynamic
+function topicExpressionFilter(expression) {
+    return Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_3__["filter"])((x) => expression(x.topic));
+}
+// @dynamic
+const dataMap = Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_3__["map"])((ms) => ms.data);
+// @dynamic
+const topicMap = Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_3__["map"])((ms) => ms.topic);
+let MessageOpsatService = class MessageOpsatService {
+    constructor() {
+        this._message$ = new rxjs__WEBPACK_IMPORTED_MODULE_2__["ReplaySubject"](10);
+    }
+    get message$() {
+        return this._message$.asObservable();
+    }
+    ngOnDestroy() {
+        this._message$.complete();
+        this._message$.unsubscribe();
+    }
+    publish(topic, data) {
+        this._message$.next({ topic, data });
+    }
+};
+MessageOpsatService = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
+    Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Injectable"])()
+], MessageOpsatService);
 
 
 

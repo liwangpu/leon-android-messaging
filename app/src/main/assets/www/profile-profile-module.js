@@ -15,7 +15,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _profile_component_scss__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./profile.component.scss */ "bygX");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/router */ "tyNb");
-/* harmony import */ var _services__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../services */ "o0su");
+/* harmony import */ var _enums__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../enums */ "Edqf");
+/* harmony import */ var _services__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../services */ "o0su");
+
+
 
 
 
@@ -23,8 +26,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let ProfileComponent = class ProfileComponent {
-    constructor(profileSrv, router) {
+    constructor(profileSrv, opsat, router) {
         this.profileSrv = profileSrv;
+        this.opsat = opsat;
         this.router = router;
     }
     ngOnInit() {
@@ -38,10 +42,12 @@ let ProfileComponent = class ProfileComponent {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         this.router.navigateByUrl('/login');
+        this.opsat.publish(_enums__WEBPACK_IMPORTED_MODULE_5__["AppMessageTopicEnum"].logout);
     }
 };
 ProfileComponent.ctorParameters = () => [
-    { type: _services__WEBPACK_IMPORTED_MODULE_5__["UserProfileService"] },
+    { type: _services__WEBPACK_IMPORTED_MODULE_6__["UserProfileService"] },
+    { type: _services__WEBPACK_IMPORTED_MODULE_6__["MessageOpsatService"] },
     { type: _angular_router__WEBPACK_IMPORTED_MODULE_4__["Router"] }
 ];
 ProfileComponent = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
