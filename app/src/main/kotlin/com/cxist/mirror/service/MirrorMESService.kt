@@ -107,8 +107,8 @@ class MirrorMESService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val importance = if (data.content.isNullOrEmpty()) NotificationManager.IMPORTANCE_LOW else NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(notificationChannelId, "Mirror MES", importance).let {
-                it.description = "Mirror MES"
+            val channel = NotificationChannel(notificationChannelId, notificationChannelId, importance).let {
+                it.description = notificationChannelId
                 it.enableLights(true)
                 it.lightColor = Color.GREEN
                 it.enableVibration(true)
@@ -134,7 +134,7 @@ class MirrorMESService : Service() {
                 .setContentText(data.content)
                 .setContentIntent(pendingIntent)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setTicker("Mirror MES")
+                .setTicker(notificationChannelId)
                 .setAutoCancel(!data.content.isNullOrEmpty())
                 .build()
     }
