@@ -155,7 +155,7 @@ class MirrorMESService : Service() {
     companion object {
         @JvmStatic
         fun actionOnService(context: Context, action: Actions) {
-            if (getServiceState() == ServiceState.STOPPED && action == Actions.STOP) return
+            if ((getServiceState() == ServiceState.STOPPED || !isServiceRunning(context)) && action == Actions.STOP) return
             Intent(context, MirrorMESService::class.java).also {
                 it.action = action.name
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -166,6 +166,22 @@ class MirrorMESService : Service() {
                 log("Android O 以下可以直接启动服务")
                 context.startService(it)
             }
+        }
+
+        /**
+         * 判断服务是否正在运行
+         */
+        private fun isServiceRunning(context: Context): Boolean {
+            val am = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
+            val runningServices: List<ActivityManager.RunningServiceInfo> =
+                am.getRunningServices(100)
+            for (runningServiceInfo in runningServices) {
+                val className: String = runningServiceInfo.service.className
+                if (className == "com.cxist.mirror.service.MirrorMESService") {
+                    return true //判断服务是否运行
+                }
+            }
+            return false
         }
     }
 }
