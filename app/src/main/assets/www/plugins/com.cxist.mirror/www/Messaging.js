@@ -1,4 +1,4 @@
-cordova.define("com.cxist.notification.Messaging", function(require, exports, module) {
+cordova.define("com.cxist.mirror.Messaging", function(require, exports, module) {
 var exec = require('cordova/exec');
 
 exports.startup = function (arg0, success, error) {

@@ -113,8 +113,7 @@ __webpack_require__.r(__webpack_exports__);
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 const environment = {
-    production: false,
-    apiServer: 'http://cxvpn.cxist.com:22504'
+    production: false
 };
 /*
  * For easier debugging in development mode, you can import the following file
@@ -177,6 +176,63 @@ var AppMessageTopicEnum;
     AppMessageTopicEnum["profileReady"] = "profileReady";
     AppMessageTopicEnum["logout"] = "logout";
 })(AppMessageTopicEnum || (AppMessageTopicEnum = {}));
+
+
+/***/ }),
+
+/***/ "JvtB":
+/*!************************************************!*\
+  !*** ./src/app/services/app-config.service.ts ***!
+  \************************************************/
+/*! exports provided: AppConfigService */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AppConfigService", function() { return AppConfigService; });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
+/* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/common */ "ofXK");
+/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/common/http */ "tk/3");
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/core */ "fXoL");
+/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! rxjs/operators */ "kU1M");
+
+
+
+
+
+let AppConfigService = class AppConfigService {
+    constructor(platformId, injector) {
+        this.platformId = platformId;
+        this.injector = injector;
+    }
+    loadAppConfig() {
+        const browserMode = Object(_angular_common__WEBPACK_IMPORTED_MODULE_1__["isPlatformBrowser"])(this.platformId);
+        if (browserMode) {
+            const storageConfig = localStorage.getItem('appConfig');
+            if (storageConfig) {
+                this.appConfig = JSON.parse(storageConfig);
+            }
+            else {
+                const http = this.injector.get(_angular_common_http__WEBPACK_IMPORTED_MODULE_2__["HttpClient"]);
+                // const configFile: string = isDevMode() ? '/assets/app-config.dev.json' : '/assets/app-config.json';
+                const configFile = '/assets/app-config.json';
+                return http.get(configFile).pipe(Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_4__["tap"])((data) => {
+                    this.appConfig = data;
+                    localStorage.setItem('appConfig', JSON.stringify(data));
+                })).toPromise();
+            }
+        }
+        return Promise.resolve();
+    }
+};
+AppConfigService.ctorParameters = () => [
+    { type: Object, decorators: [{ type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["Inject"], args: [_angular_core__WEBPACK_IMPORTED_MODULE_3__["PLATFORM_ID"],] }] },
+    { type: _angular_core__WEBPACK_IMPORTED_MODULE_3__["Injector"] }
+];
+AppConfigService = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
+    Object(_angular_core__WEBPACK_IMPORTED_MODULE_3__["Injectable"])()
+], AppConfigService);
+
 
 
 /***/ }),
@@ -284,11 +340,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ionic_angular__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @ionic/angular */ "TEn/");
 /* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! rxjs/operators */ "kU1M");
 /* harmony import */ var subsink__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! subsink */ "33Jv");
-/* harmony import */ var _enums__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./enums */ "Edqf");
-/* harmony import */ var _services__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./services */ "o0su");
-/* harmony import */ var _env_environment__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @env/environment */ "AytR");
-
-
+/* harmony import */ var _services__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./services */ "o0su");
 
 
 
@@ -298,39 +350,45 @@ __webpack_require__.r(__webpack_exports__);
 
 
 let AppComponent = class AppComponent {
-    constructor(platform, messagingSrv, opsat, toastController) {
-        this.platform = platform;
+    constructor(messagingSrv, toastController, profileSrv) {
         this.messagingSrv = messagingSrv;
-        this.opsat = opsat;
         this.toastController = toastController;
+        this.profileSrv = profileSrv;
         this.subs = new subsink__WEBPACK_IMPORTED_MODULE_6__["SubSink"]();
-        this.subs.sink = this.opsat.message$.pipe(Object(_services__WEBPACK_IMPORTED_MODULE_8__["topicFilter"])(_enums__WEBPACK_IMPORTED_MODULE_7__["AppMessageTopicEnum"].profileReady), Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_5__["delay"])(200)).subscribe(() => {
-            // let employeeId = localStorage.getItem('employeeId');
-            // console.log('employeeId:', employeeId);
-            this.startupMessaging();
-        });
-        this.subs.sink = this.opsat.message$.pipe(Object(_services__WEBPACK_IMPORTED_MODULE_8__["topicFilter"])(_enums__WEBPACK_IMPORTED_MODULE_7__["AppMessageTopicEnum"].logout)).subscribe(() => {
-            this.shutdownMessaging();
-        });
+        this.subs.sink = this.profileSrv.profile$
+            .pipe(Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_5__["skip"])(1))
+            .subscribe((profile) => Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+            if (!profile) {
+                if (this.messagingStarted) {
+                    yield this.shutdownMessaging();
+                }
+                return;
+            }
+            const appConfigStr = localStorage.getItem('appConfig');
+            const appConfig = JSON.parse(appConfigStr);
+            const config = {
+                gateway: appConfig.apiGateway,
+                token: localStorage.getItem('access_token'),
+                expiresIn: localStorage.getItem('expires_in'),
+                refreshToken: localStorage.getItem('refresh_token'),
+                tenantId: profile === null || profile === void 0 ? void 0 : profile.tenantId,
+                identityId: profile === null || profile === void 0 ? void 0 : profile.identityId,
+                employeeId: profile === null || profile === void 0 ? void 0 : profile.employeeId,
+                aliase: undefined,
+            };
+            yield this.startupMessaging(config);
+        }));
     }
     ngOnDestroy() {
         this.subs.unsubscribe();
     }
     ngOnInit() {
-        //
+        window['__cordovaAppUrlChange'] = (link) => {
+            alert(`url change: ${link}`);
+        };
     }
-    startupMessaging() {
+    startupMessaging(config) {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            let config = {
-                gateway: _env_environment__WEBPACK_IMPORTED_MODULE_9__["environment"].apiServer,
-                token: localStorage.getItem('access_token'),
-                expiresIn: localStorage.getItem('expires_in'),
-                refreshToken: localStorage.getItem('refresh_token'),
-                tenantId: localStorage.getItem('tenantId'),
-                identityId: localStorage.getItem('identityId'),
-                employeeId: localStorage.getItem('employeeId'),
-                aliase: undefined,
-            };
             if (typeof cordova === 'undefined') {
                 this.showMessage('当前应用不在手机端运行,前台服务将不会启动');
                 return;
@@ -389,10 +447,9 @@ let AppComponent = class AppComponent {
     }
 };
 AppComponent.ctorParameters = () => [
-    { type: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["Platform"] },
-    { type: _services__WEBPACK_IMPORTED_MODULE_8__["MessagingService"] },
-    { type: _services__WEBPACK_IMPORTED_MODULE_8__["MessageOpsatService"] },
-    { type: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["ToastController"] }
+    { type: _services__WEBPACK_IMPORTED_MODULE_7__["MessagingService"] },
+    { type: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["ToastController"] },
+    { type: _services__WEBPACK_IMPORTED_MODULE_7__["UserProfileService"] }
 ];
 AppComponent = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
     Object(_angular_core__WEBPACK_IMPORTED_MODULE_3__["Component"])({
@@ -439,7 +496,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @angular/common/http */ "tk/3");
 /* harmony import */ var _services__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./services */ "o0su");
 /* harmony import */ var _tokens__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./tokens */ "nDUn");
-/* harmony import */ var _env_environment__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @env/environment */ "AytR");
 
 
 
@@ -451,6 +507,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+const appInitializerFn = (appConfig) => () => appConfig.loadAppConfig();
+const apiGatewayFn = (configSrv) => { var _a; return `${(_a = configSrv.appConfig) === null || _a === void 0 ? void 0 : _a.apiGateway}`; };
 let AppModule = class AppModule {
 };
 AppModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
@@ -469,7 +527,18 @@ AppModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
             _services__WEBPACK_IMPORTED_MODULE_8__["UserProfileProviderService"],
             _services__WEBPACK_IMPORTED_MODULE_8__["MessagingService"],
             _services__WEBPACK_IMPORTED_MODULE_8__["MessageOpsatService"],
-            { provide: _tokens__WEBPACK_IMPORTED_MODULE_9__["API_GATEWAY"], useValue: _env_environment__WEBPACK_IMPORTED_MODULE_10__["environment"].apiServer },
+            _services__WEBPACK_IMPORTED_MODULE_8__["AppConfigService"],
+            {
+                provide: _angular_core__WEBPACK_IMPORTED_MODULE_1__["APP_INITIALIZER"],
+                useFactory: appInitializerFn,
+                multi: true,
+                deps: [_services__WEBPACK_IMPORTED_MODULE_8__["AppConfigService"]]
+            },
+            {
+                provide: _tokens__WEBPACK_IMPORTED_MODULE_9__["API_GATEWAY"],
+                useFactory: apiGatewayFn,
+                deps: [_services__WEBPACK_IMPORTED_MODULE_8__["AppConfigService"]]
+            },
             { provide: _angular_router__WEBPACK_IMPORTED_MODULE_3__["RouteReuseStrategy"], useClass: _ionic_angular__WEBPACK_IMPORTED_MODULE_4__["IonicRouteStrategy"] },
             { provide: _angular_common_http__WEBPACK_IMPORTED_MODULE_7__["HTTP_INTERCEPTORS"], useClass: _services__WEBPACK_IMPORTED_MODULE_8__["ErrorInterceptor"], multi: true },
             { provide: _angular_common_http__WEBPACK_IMPORTED_MODULE_7__["HTTP_INTERCEPTORS"], useClass: _services__WEBPACK_IMPORTED_MODULE_8__["AuthInterceptor"], multi: true }
@@ -879,7 +948,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************!*\
   !*** ./src/app/services/index.ts ***!
   \***********************************/
-/*! exports provided: IdentityService, AuthInterceptor, ErrorInterceptor, UserProfileService, MessagingService, topicFilter, topicFilters, topicExpressionFilter, dataMap, topicMap, MessageOpsatService, UserProfileProviderService */
+/*! exports provided: IdentityService, AuthInterceptor, ErrorInterceptor, UserProfileService, MessagingService, topicFilter, topicFilters, topicExpressionFilter, dataMap, topicMap, MessageOpsatService, UserProfileProviderService, AppConfigService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -914,6 +983,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./user-profile-provider.service */ "AI8P");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UserProfileProviderService", function() { return _user_profile_provider_service__WEBPACK_IMPORTED_MODULE_6__["UserProfileProviderService"]; });
+
+/* harmony import */ var _app_config_service__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./app-config.service */ "JvtB");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AppConfigService", function() { return _app_config_service__WEBPACK_IMPORTED_MODULE_7__["AppConfigService"]; });
+
 
 
 

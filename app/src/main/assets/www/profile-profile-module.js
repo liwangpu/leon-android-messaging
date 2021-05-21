@@ -38,9 +38,9 @@ let ProfileComponent = class ProfileComponent {
         });
     }
     logout() {
-        localStorage.removeItem('latest_login');
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('appConfig');
         this.router.navigateByUrl('/login');
         this.opsat.publish(_enums__WEBPACK_IMPORTED_MODULE_5__["AppMessageTopicEnum"].logout);
     }

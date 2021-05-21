@@ -103,7 +103,7 @@ LoginRoutingModule = Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"])([
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ("<ion-content [fullscreen]=\"true\">\n    <form [formGroup]='form'>\n        <ion-item lines=\"none\">\n            <h4>用户登陆</h4>\n        </ion-item>\n        <ion-item>\n            <ion-label>用户名</ion-label>\n            <ion-input type='text' formControlName='username'></ion-input>\n        </ion-item>\n        <ion-item>\n            <ion-label>密码</ion-label>\n            <ion-input type=\"password\" formControlName='password'></ion-input>\n        </ion-item>\n    </form>\n\n    <div class=\"buttons\">\n        <ion-button expand=\"block\" (click)='login()'>登陆</ion-button>\n    </div>\n</ion-content>");
+/* harmony default export */ __webpack_exports__["default"] = ("<ion-content [fullscreen]=\"true\">\n    <form [formGroup]='form'>\n        <ion-item lines=\"none\">\n            <h4>用户登陆</h4>\n        </ion-item>\n        <ion-item>\n            <ion-label>用户名</ion-label>\n            <ion-input type='text' formControlName='username'></ion-input>\n        </ion-item>\n        <ion-item>\n            <ion-label>密码</ion-label>\n            <ion-input type=\"password\" formControlName='password'></ion-input>\n        </ion-item>\n    </form>\n\n    <div class=\"buttons\">\n        <ion-button expand=\"block\" [disabled]='!form?.valid' (click)='login()'>登陆</ion-button>\n    </div>\n</ion-content>");
 
 /***/ }),
 
@@ -156,17 +156,27 @@ let LoginComponent = class LoginComponent {
     }
     login() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            const res = yield this.identitySrv.login(this.form.value).toPromise();
-            localStorage.setItem('latest_login', JSON.stringify(this.form.value));
-            localStorage.setItem('access_token', res.access_token);
-            localStorage.setItem('refresh_token', res.refresh_token);
-            localStorage.setItem('expires_in', res.expires_in);
-            const toast = yield this.toastController.create({
-                message: '登陆成功',
-                duration: 2000
-            });
-            toast.present();
-            yield this.router.navigateByUrl(this.returnUrl ? decodeURIComponent(this.returnUrl) : '/');
+            try {
+                const res = yield this.identitySrv.login(this.form.value).toPromise();
+                localStorage.setItem('latest_login', JSON.stringify(this.form.value));
+                localStorage.setItem('access_token', res.access_token);
+                localStorage.setItem('refresh_token', res.refresh_token);
+                localStorage.setItem('expires_in', res.expires_in);
+                const toast = yield this.toastController.create({
+                    message: '登陆成功',
+                    duration: 2000
+                });
+                toast.present();
+                yield this.router.navigateByUrl(this.returnUrl ? decodeURIComponent(this.returnUrl) : '/');
+            }
+            catch (err) {
+                console.log('err:', err);
+                const toast = yield this.toastController.create({
+                    message: '账户名或者密码有误',
+                    duration: 2000
+                });
+                toast.present();
+            }
         });
     }
 };

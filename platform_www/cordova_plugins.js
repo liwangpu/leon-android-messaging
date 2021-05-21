@@ -1,9 +1,9 @@
 cordova.define('cordova/plugin_list', function(require, exports, module) {
   module.exports = [
     {
-      "id": "com.cxist.notification.Messaging",
-      "file": "plugins/com.cxist.notification/www/Messaging.js",
-      "pluginId": "com.cxist.notification",
+      "id": "com.cxist.mirror.Messaging",
+      "file": "plugins/com.cxist.mirror/www/Messaging.js",
+      "pluginId": "com.cxist.mirror",
       "clobbers": [
         "cordova.plugins.Messaging"
       ]
@@ -50,7 +50,7 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
     }
   ];
   module.exports.metadata = {
-    "com.cxist.notification": "0.0.1",
+    "com.cxist.mirror": "0.0.1",
     "cordova-plugin-androidx-adapter": "1.1.3",
     "cordova-plugin-device": "2.0.2",
     "cordova-plugin-ionic-keyboard": "2.2.0",
