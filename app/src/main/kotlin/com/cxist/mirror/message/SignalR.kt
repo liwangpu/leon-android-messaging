@@ -20,11 +20,17 @@ object SignalR {
     private var messageReceived: MessageReceivedCall? = null
 
     fun create() {
-        HttpsTrustManager.allowAllSSL()
-
         log("SignalR create")
         hubConnection = HubConnectionBuilder
             .create(NativeHttp.SERVICE_BASE_URL + NativeHttp.SERVICE_MESSAGE)
+            .setHttpClientBuilderCallback {
+                try {
+                    val ssl = HttpsUtils.getSslSocketFactory()
+                    it.sslSocketFactory(ssl.sSLSocketFactory, ssl.trustManager)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             .withAccessTokenProvider(object : Single<String>() {
                 override fun subscribeActual(observer: SingleObserver<in String>) {
                     log("SignalR withAccessTokenProvider")
